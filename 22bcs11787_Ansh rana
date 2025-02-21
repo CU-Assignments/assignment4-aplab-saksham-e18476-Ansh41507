@@ -1,0 +1,106 @@
+PROBLEM 1 (BEATIFUL ARRAY)
+#include <vector>
+#include <iostream>
+using namespace std;
+
+vector<int> beautifulArray(int n) {
+    vector<int> result;
+    
+    // Separate odd and even numbers
+    for (int i = 1; i <= n; i++) {
+        if (i % 2 != 0) {
+            result.push_back(i);
+        }
+    }
+    for (int i = 1; i <= n; i++) {
+        if (i % 2 == 0) {
+            result.push_back(i);
+        }
+    }
+    return result;
+}
+
+int main() {
+    int n = 4;
+    vector<int> result = beautifulArray(n);
+    
+    for (int num : result) {
+        cout << num << " ";
+    }
+    return 0;
+}
+PROBLEM 2 (SKYLINE PROBLEM)
+#include <vector>
+#include <queue>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+vector<vector<int>> getSkyline(vector<vector<int>>& buildings) {
+    vector<vector<int>> result;
+    
+    // Create events (start, end)
+    vector<pair<int, pair<int, int>>> events;
+    for (auto& b : buildings) {
+        events.push_back({b[0], {b[2], 1}});  // start of a building
+        events.push_back({b[1], {b[2], -1}}); // end of a building
+    }
+
+    // Sort events: first by x-coordinate, then by height (start comes before end)
+    sort(events.begin(), events.end(), [](const pair<int, pair<int, int>>& a, const pair<int, pair<int, int>>& b) {
+        if (a.first == b.first) return a.second.first > b.second.first;
+        return a.first < b.first;
+    });
+
+    // Max heap to store the heights of active buildings
+    priority_queue<int> pq;
+    pq.push(0);  // Ground level height
+    
+    int prevHeight = 0;
+
+    // Process events
+    for (auto& event : events) {
+        int x = event.first;
+        int height = event.second.first;
+        int type = event.second.second;
+        
+        if (type == 1) {
+            pq.push(height);  // Start of a building
+        } else {
+            priority_queue<int> tempPQ;
+            while (!pq.empty()) {
+                if (pq.top() == height) {
+                    pq.pop();
+                    break;
+                } else {
+                    tempPQ.push(pq.top());
+                    pq.pop();
+                }
+            }
+            while (!tempPQ.empty()) {
+                pq.push(tempPQ.top());
+                tempPQ.pop();
+            }
+        }
+
+        int currentHeight = pq.top();
+        if (currentHeight != prevHeight) {
+            result.push_back({x, currentHeight});
+            prevHeight = currentHeight;
+        }
+    }
+
+    return result;
+}
+
+int main() {
+    vector<vector<int>> buildings = {{2,9,10},{3,7,15},{5,12,12},{15,20,10},{19,24,8}};
+    vector<vector<int>> skyline = getSkyline(buildings);
+    
+    for (const auto& point : skyline) {
+        cout << "[" << point[0] << "," << point[1] << "] ";
+    }
+    return 0;
+}
+
